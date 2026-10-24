@@ -10,6 +10,7 @@ import pydeck as pdk
 import streamlit as st
 
 from core.logic import ALERT_ORDER, Settings, explain, forecast, reservoir_status, settlement_risk
+from satellite_tab import render as render_satellite
 
 DATA = Path(__file__).parent / "data"
 
@@ -63,6 +64,7 @@ res_table = reservoirs.assign(
 )
 
 # ---- header ------------------------------------------------------------------------
+
 st.title("Drought early warning for reservoirs and settlements")
 st.warning("Demo with SIMULATED data. Names, locations and numbers are invented. Not for operational use.")
 
@@ -70,9 +72,9 @@ cols = st.columns(len(ALERT_ORDER))
 for c, level in zip(cols, ALERT_ORDER):
     c.metric(f"Reservoirs at {level}", int(sum(1 for a in alerts.values() if a == level)))
 
-tab_map, tab_res, tab_set, tab_about = st.tabs(["Map", "Reservoirs", "Settlements at risk", "About"])
-
+tab_map, tab_res, tab_set, tab_sat, tab_about = st.tabs(["Map", "Reservoirs", "Settlements at risk", "Satellite", "About"])
 # ---- map ---------------------------------------------------------------------------
+
 with tab_map:
     res_pts = res_table.assign(color=res_table["alert"].map(ALERT_RGB),
                                label="Reservoir " + res_table["name"] + " - alert: " + res_table["alert"])
@@ -130,7 +132,9 @@ with tab_set:
         "Score = 100 x exposure x (0.7 + 0.2 x population term + 0.1 x critical facility). "
         "Exposure = supply share x (1 - backup share) x alert factor (green 0, yellow 0.4, orange 0.7, red 1)."
     )
-
+# ---- satellite ---------------------------------------------------------------------
+with tab_sat:
+    render_satellite(DATA)
 # ---- about -------------------------------------------------------------------------
 with tab_about:
     st.markdown(
